@@ -11,7 +11,8 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-#include "chr_drv.h" /* прототипы chr_drv_init / chr_drv_exit */
+#include "chr_drv.h"
+#include "chr_drv_int.h"
 
 /*
  * chr_drv_mod_init — функция, которую ядро вызывает сразу после insmod
@@ -24,7 +25,12 @@
  */
 static int __init chr_drv_mod_init(void)
 {
-	return chr_drv_init();
+	int ret = chr_drv_init();
+
+	if (ret)
+		pr_err("%s v%s: init failed: %d\n", CHR_DRV_DEVICE_NAME,
+		       CHR_DRV_VERSION, ret);
+	return ret;
 }
 
 /*
@@ -46,4 +52,4 @@ module_exit(chr_drv_mod_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Smolovoy Sergey");
 MODULE_DESCRIPTION("Fusy char driver");
-MODULE_VERSION("1.0");
+MODULE_VERSION(CHR_DRV_VERSION);

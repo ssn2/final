@@ -13,9 +13,15 @@
 
 int chr_drv_init(void)
 {
+	pr_info("%s v%s: loaded", CHR_DRV_DEVICE_NAME, CHR_DRV_VERSION);
+	if (debug)
+		pr_info("  debug enabled\n");
+
+//	pr_info("%s v%s: loaded\n", CHR_DRV_DEVICE_NAME, CHR_DRV_VERSION);
 	return 0;
 }
 
 void chr_drv_exit(void)
 {
+	pr_info("%s v%s: unloaded\n", CHR_DRV_DEVICE_NAME, CHR_DRV_VERSION);
 }

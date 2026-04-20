@@ -16,6 +16,11 @@
 extern bool debug;
 
 /*
+ * CHR_DRV_VERSION — версия модуля (modinfo, сообщения в dmesg).
+ */
+#define CHR_DRV_VERSION "1.0"
+
+/*
  * CHR_DRV_DEVICE_NAME — строка имени узла в /dev (без пути /dev/).
  * Передаётся в device_create(..., name).
  */
