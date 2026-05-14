@@ -37,9 +37,25 @@ extern bool debug;
 #define CHR_DRV_PROC_NAME "chr_drv"
 
 /*
- * CHR_DRV_BUFFER_SIZE — размер статического массива kbuffer в chr_drv_main.c 
+ * CHR_DRV_BUFFER_SIZE — размер статического массива kbuffer в chr_drv_main.c
  * в байтах. Ограничивает максимум данных, которые можно держать в буфере.
  */
 #define CHR_DRV_BUFFER_SIZE 256
+
+/*
+ * ioctl — команды для userspace (ioctl(2) на /dev/chr_drv).
+ * Magic 'c' — произвольная буква, главное не пересечься с другими драйверами.
+ *
+ * Примеры из shell (нужен свой маленький C-файл или программа):
+ *   CHR_DRV_IOC_CLEAR     — очистить буфер
+ *   CHR_DRV_IOC_GET_LEN   — узнать, сколько байт сейчас в буфере
+ *   CHR_DRV_IOC_GET_DEBUG / SET_DEBUG — читать/менять флаг debug модуля
+ */
+#define CHR_DRV_IOC_MAGIC	'c'
+
+#define CHR_DRV_IOC_CLEAR	_IO(CHR_DRV_IOC_MAGIC, 0)
+#define CHR_DRV_IOC_GET_LEN	_IOR(CHR_DRV_IOC_MAGIC, 1, size_t)
+#define CHR_DRV_IOC_GET_DEBUG	_IOR(CHR_DRV_IOC_MAGIC, 2, int)
+#define CHR_DRV_IOC_SET_DEBUG	_IOW(CHR_DRV_IOC_MAGIC, 3, int)
 
 #endif /* CHR_DRV_INT_H */

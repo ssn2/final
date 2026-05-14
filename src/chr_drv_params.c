@@ -33,14 +33,10 @@
 bool debug;
 
 /*
- * module_param_named(имя_в_sysfs, имя_переменной_C, тип, права_access)
+ * module_param_named → /sys/module/chr_drv/parameters/debug
+ * (не /sys/class/... — класс устройства и его атрибуты в chr_drv_main.c).
  *
- *   имя_в_sysfs     — "debug" → файл .../parameters/debug
- *   имя_переменной  — та же bool debug 
- *   bool             — тип в sysfs как Y/n
- *   0644             — rw-r--r-- для файла параметра (владелец root обычно может писать).
- *
- * MODULE_PARM_DESC — текст для `modinfo chr_drv.ko`.
+ * То же значение debug можно менять через ioctl CHR_DRV_IOC_SET_DEBUG.
  */
 module_param_named(debug, debug, bool, 0644);
 MODULE_PARM_DESC(debug,
