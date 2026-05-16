@@ -23,12 +23,10 @@ help:
 	@echo "  make clean       — очистить сборку"
 	@echo "  make format      — clang-format для $(SRC_DIR)/*.c"
 	@echo "  make check       — checker/check.sh"
-	@echo ""
-	@echo "  make load        — insmod (сборка + загрузка, нужен root)"
-	@echo "  make unload      — rmmod"
+	@echo "  make load        — загрузить модуль (insmod сборка + загрузка, нужен root)"
+	@echo "  make unload      — выгрузить модуль (rmmod)"
 	@echo "  make install     — копия в /lib/modules/$(shell uname -r)/extra + depmod -a"
 	@echo "  make uninstall   — удаление из extra + depmod -a"
-	@echo ""
 	@echo "  make help        — этот список"
 
 kbuild:
