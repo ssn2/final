@@ -71,8 +71,8 @@ static int chr_drv_release(struct inode *inode, struct file *file)
 /*
  * read — копируем из kbuffer в буфер пользователя (copy_to_user).
  *
- * ppos — смещение в «файле»; 0 после open, растёт после каждого read.
- * Если ppos >= kbuffer_len, данных больше нет → возвращаем 0 (EOF).
+ * ppos — смещение; 0 после open, растёт после каждого read.
+ * ppos >= kbuffer_len → 0 (EOF). Буфер при чтении не меняется.
  */
 static ssize_t chr_drv_read(struct file *file, char __user *buf, size_t count,
 			    loff_t *ppos)
@@ -82,12 +82,15 @@ static ssize_t chr_drv_read(struct file *file, char __user *buf, size_t count,
 	if (!buf)
 		return -EINVAL;
 
-	if (*ppos >= kbuffer_len)
-		return 0;
+	mutex_lock(&chr_buf_mutex);
+
+	if (*ppos >= kbuffer_len) {
+		ret = 0;
+		goto out_unlock;
+	}
 
 	count = min(count, kbuffer_len - (size_t)*ppos);
 
-	mutex_lock(&chr_buf_mutex);
 	if (copy_to_user(buf, kbuffer + *ppos, count)) {
 		ret = -EFAULT;
 		goto out_unlock;
@@ -101,32 +104,32 @@ out_unlock:
 }
 
 /*
- * write — копируем из userspace в kbuffer (copy_from_user).
+ * write — всегда с начала буфера (kbuffer[0]).
  *
- * Запись с учётом ppos; kbuffer_len = max(старое, ppos + записано).
- * За пределы CHR_DRV_BUFFER_SIZE писать нельзя → -ENOSPC.
+ * ppos в буфере не участвует (смещение записи не поддерживается).
+ * Копируем не больше CHR_DRV_BUFFER_SIZE байт; лишнее отбрасывается.
+ * kbuffer_len = число реально записанных байт (новое содержимое целиком).
+ * После write *ppos = 0 — следующий read на том же fd читает с начала.
  */
 static ssize_t chr_drv_write(struct file *file, const char __user *buf,
 			     size_t count, loff_t *ppos)
 {
 	size_t to_copy;
 
+	(void)file;
+
 	if (!buf)
 		return -EINVAL;
 
-	if (*ppos >= CHR_DRV_BUFFER_SIZE)
-		return -ENOSPC;
-
-	to_copy = min(count, (size_t)CHR_DRV_BUFFER_SIZE - (size_t)*ppos);
+	to_copy = min(count, (size_t)CHR_DRV_BUFFER_SIZE);
 
 	mutex_lock(&chr_buf_mutex);
-	if (copy_from_user(kbuffer + *ppos, buf, to_copy)) {
+	if (copy_from_user(kbuffer, buf, to_copy)) {
 		mutex_unlock(&chr_buf_mutex);
 		return -EFAULT;
 	}
-	*ppos += to_copy;
-	if ((size_t)*ppos > kbuffer_len)
-		kbuffer_len = *ppos;
+	kbuffer_len = to_copy;
+	*ppos = 0;
 	mutex_unlock(&chr_buf_mutex);
 
 	if (debug)
@@ -200,7 +203,6 @@ static const struct file_operations chr_drv_fops = {
 	.read = chr_drv_read,
 	.write = chr_drv_write,
 	.unlocked_ioctl = chr_drv_ioctl,
-	.llseek = default_llseek,
 };
 
 /* -------------------------------------------------------------------------- */

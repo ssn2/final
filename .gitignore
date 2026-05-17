@@ -1,5 +1,6 @@
 all/
 build/
+checker/test_ioctl
 *.cmd
 *.mod*
 *.swp
